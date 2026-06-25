@@ -1,0 +1,131 @@
+@startuml Foodie_System_Architecture
+title System Architecture v1.0 (MVP — Sprint 0-3)
+
+skinparam backgroundColor white
+skinparam componentStyle rectangle
+skinparam wrapWidth 200
+skinparam defaultTextAlignment left
+
+skinparam component {
+  BackgroundColor<<sprint0>> #D5E8D4
+  BorderColor<<sprint0>> #82B366
+  BackgroundColor<<sprint1>> #D5E8D4
+  BorderColor<<sprint1>> #82B366
+  BackgroundColor<<sprint2>> #DAE8FC
+  BorderColor<<sprint2>> #6C8EBF
+  BackgroundColor<<sprint3>> #DAE8FC
+  BorderColor<<sprint3>> #6C8EBF
+  BackgroundColor<<infra>> #FFE6CC
+  BorderColor<<infra>> #D79B00
+}
+
+skinparam database {
+  BackgroundColor #FFE6CC
+  BorderColor #D79B00
+}
+
+skinparam note {
+  BackgroundColor #FFF2CC
+  BorderColor #D6B656
+}
+
+' ===================== CLIENT TIER =====================
+package "Client Tier (React + Vite SPA)" {
+  [Login / Register\nAuth pages] <<sprint0>> as Auth
+  [Inventory\nAdd / Edit / Delete items] <<sprint1>> as Inventory
+  [Locations UI\nExpiry dashboard, filtering] <<sprint2>> as LocationsUI
+  [Dashboard Widgets\nSearch, consumption summary] <<sprint3>> as Dashboard
+}
+
+' ===================== APP LOGIC TIER (internal layers) =====================
+package "App Logic Tier (ASP.NET Core Web API)" {
+
+  package "Controllers" {
+    [AuthController] <<sprint0>> as AuthCtrl
+    [FoodItemController] <<sprint1>> as ItemCtrl
+    [LocationController] <<sprint2>> as LocCtrl
+    [DashboardController] <<sprint3>> as DashCtrl
+  }
+
+  package "Services" {
+    [AuthService\nJWT issuing/validation] <<sprint0>> as AuthSvc
+    [FoodItemService\nCRUD + validation] <<sprint1>> as ItemSvc
+    [ExpiryService\nExpiry calc, location rules] <<sprint2>> as ExpirySvc
+    [ConsumptionService\nDashboard aggregation] <<sprint3>> as ConsumeSvc
+  }
+
+  package "Repositories" {
+    [UserRepository] <<sprint0>> as UserRepo
+    [FoodItemRepository] <<sprint1>> as ItemRepo
+    [LocationRepository\nExpiry-filtered queries] <<sprint2>> as LocRepo
+    [ConsumptionRepository\nSummary queries] <<sprint3>> as ConsumeRepo
+  }
+}
+
+' ===================== DATA TIER =====================
+package "Data Tier" {
+  database "PostgreSQL\n\nUsers, FoodItems,\nLocations, Consumption" <<infra>> as DB
+}
+
+note right of DB
+  EF Core ORM
+  SQL chosen for relational
+  FK integrity (FoodItem→Location
+  →Household→User)
+end note
+
+note left of Controllers
+  Pattern: Controllers → Services → Repositories
+  All three layers live INSIDE the App Logic tier
+  (not separate deployment tiers)
+end note
+
+note top of Controllers
+  Tier 1 ↔ Tier 2 communication:
+  HTTPS + REST, JSON payloads
+  JWT bearer token in Authorization header
+  (set after login, sent on all
+  subsequent requests)
+end note
+
+legend right
+  |Color|Meaning|
+  |<#D5E8D4>| Sprint 0-1 (active/done) |
+  |<#DAE8FC>| Sprint 2-3 (planned) |
+  |<#FFE6CC>| Infrastructure |
+endlegend
+
+' ===================== FLOWS: Client -> Controllers (HTTPS/REST + JSON) =====================
+Auth --> AuthCtrl : POST /api/auth\n(HTTPS, JSON)
+Inventory --> ItemCtrl : GET/POST/PUT/DELETE\n/api/fooditems (HTTPS, JSON)
+LocationsUI --> LocCtrl : GET /api/locations\n(HTTPS, JSON)
+Dashboard --> DashCtrl : GET /api/dashboard\n(HTTPS, JSON)
+
+AuthCtrl ..> Auth : 200 OK + JWT\n(JSON)
+ItemCtrl ..> Inventory : item data\n(JSON)
+LocCtrl ..> LocationsUI : filtered results\n(JSON)
+DashCtrl ..> Dashboard : aggregated stats\n(JSON)
+
+' ===================== FLOWS: Controllers -> Services =====================
+AuthCtrl --> AuthSvc : validate credentials
+ItemCtrl --> ItemSvc : create/update/delete item
+LocCtrl --> ExpirySvc : compute expiry / assign location
+DashCtrl --> ConsumeSvc : aggregate consumption
+
+' ===================== FLOWS: Services -> Repositories =====================
+AuthSvc --> UserRepo : read/write user
+ItemSvc --> ItemRepo : read/write item
+ExpirySvc --> LocRepo : read/write location
+ConsumeSvc --> ConsumeRepo : read consumption data
+
+' cross-layer dependency: expiry rules need item data too
+ExpirySvc ..> ItemRepo : read item expiry dates
+
+' ===================== FLOWS: Repositories -> Database =====================
+UserRepo --> DB : SQL (EF Core)
+ItemRepo --> DB : SQL (EF Core)
+LocRepo --> DB : SQL (EF Core)
+ConsumeRepo --> DB : SQL (EF Core)
+
+footer Foodie | Architecture v1.0 (MVP) | Sprint 0-3
+@enduml

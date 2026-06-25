@@ -1,0 +1,80 @@
+@startuml Foodie_ER_Diagram
+title Foodie — Entity Relationship Diagram (MVP / Sprint 0-3)
+
+skinparam backgroundColor white
+
+skinparam entity {
+  BackgroundColor #DAE8FC
+  BorderColor #6C8EBF
+  FontColor #1A1A1A
+}
+
+skinparam note {
+  BackgroundColor #FFF2CC
+  BorderColor #D6B656
+}
+
+' ===================== ENTITIES =====================
+
+entity "Users" as Users {
+  * Id : INT <<PK>>
+  --
+  * Email : VARCHAR(100) <<unique>>
+  * PasswordHash : VARCHAR(255)
+  * CreatedAt : DATETIME
+}
+
+entity "Locations" as Locations {
+  * Id : INT <<PK>>
+  --
+  * Name : VARCHAR(100)
+  * UserId : INT <<FK>>
+}
+
+entity "FoodItems" as FoodItems {
+  * Id : INT <<PK>>
+  --
+  * Name : VARCHAR(100)
+  * Quantity : DECIMAL(10,2)
+  * Unit : VARCHAR(20)
+  * ExpiryDate : DATE
+  LocationId : INT <<FK, nullable>>
+  * UserId : INT <<FK>>
+}
+
+' ===================== RELATIONSHIPS =====================
+
+' Users 1 -> N Locations (mandatory FK, cascade delete)
+Users ||--o{ Locations : "owns\n(ON DELETE CASCADE)"
+
+' Locations 1 -> N FoodItems (optional FK, set null on delete)
+Locations |o--o{ FoodItems : "stores\n(ON DELETE SET NULL)"
+
+' Users 1 -> N FoodItems (mandatory FK, cascade delete)
+Users ||--o{ FoodItems : "owns\n(ON DELETE CASCADE)"
+
+' ===================== NOTES =====================
+
+note right of FoodItems
+  LocationId is nullable at the DB level,
+  but required by application-layer
+  validation when an item is created.
+  This lets a Location be deleted without
+  losing FoodItems (they become unassigned
+  and can be reassigned later).
+end note
+
+note bottom of Locations
+  Bullet (•) = NOT NULL (mandatory attribute)
+  No bullet = nullable
+  <<PK>> = Primary Key, <<FK>> = Foreign Key
+end note
+
+note as N1
+  Cardinality notation used above:
+  ||--o{   one (mandatory) to many (optional)
+  |o--o{   one (optional) to many (optional)
+end note
+
+footer Foodie | ER Diagram v1.0 (MVP) | Sprint 0-3
+@enduml
