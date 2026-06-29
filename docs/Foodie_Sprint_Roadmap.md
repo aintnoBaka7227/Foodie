@@ -4,8 +4,6 @@
 
 **Tech Stack:** React + Vite · ASP.NET Core Web API · PostgreSQL · EF Core · JWT
 
-> Task durations below are estimates allocated across each sprint's 7 days, based on task complexity and dependencies — not from the original roadmap, which only specified sprint-level duration. Adjust to your own pace.
-
 ---
 
 ## Sprint 0 — Planning & Foundation

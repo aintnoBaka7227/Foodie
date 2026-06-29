@@ -64,83 +64,87 @@ Foodie/
 │
 ├── src/
 │   │
-│   ├── Foodie.Api/               # ASP.NET Core Web API (backend)
-│   │   ├── Program.cs                       # App entry point, DI registration, middleware pipeline (Sprint 0)
-│   │   ├── appsettings.json                 # Base configuration, non-secret (Sprint 0)
-│   │   ├── appsettings.Development.json     # Local dev config, gitignored (Sprint 0)
-│   │   ├── Dockerfile                       # Container build for the API (Sprint 0)
+│   ├── backend/
 │   │   │
-│   │   ├── Controllers/                     # HTTP in/out only — no business logic
-│   │   │   ├── AuthController.cs                # Register, login (Sprint 0)
-│   │   │   ├── FoodItemsController.cs           # Inventory CRUD endpoints (Sprint 1)
-│   │   │   ├── LocationsController.cs           # Location CRUD + expiry endpoints (Sprint 2)
-│   │   │   └── DashboardController.cs           # Consume, search/filter, summary endpoints (Sprint 3)
-│   │   │
-│   │   ├── Services/                        # Business rules
-│   │   │   ├── IAuthService.cs / AuthService.cs                  # JWT issuing/validation, password hashing (Sprint 0)
-│   │   │   ├── IFoodItemService.cs / FoodItemService.cs          # Item validation rules (Sprint 1)
-│   │   │   ├── ILocationService.cs / LocationService.cs          # Expiry calculation, location-assignment rules (Sprint 2)
-│   │   │   └── IDashboardService.cs / DashboardService.cs        # Consumption logic, dashboard aggregation (Sprint 3)
-│   │   │
-│   │   ├── Repositories/                    # EF Core data access only
-│   │   │   ├── IUserRepository.cs / UserRepository.cs                # (Sprint 0)
-│   │   │   ├── IFoodItemRepository.cs / FoodItemRepository.cs        # (Sprint 1)
-│   │   │   └── ILocationRepository.cs / LocationRepository.cs        # incl. expiry-filtered queries (Sprint 2)
-│   │   │
-│   │   ├── Models/                          # EF Core entities
-│   │   │   ├── User.cs                          # (Sprint 0)
-│   │   │   ├── FoodItem.cs                      # (Sprint 1)
-│   │   │   └── Location.cs                      # (Sprint 2)
-│   │   │
-│   │   ├── Data/
-│   │   │   ├── FoodieDbContext.cs               # EF Core DbContext (Sprint 0)
-│   │   │   └── Migrations/                      # EF Core migrations, one per schema change
-│   │   │       ├── InitialCreate                # Users (Sprint 0)
-│   │   │       ├── AddFoodItems                 # (Sprint 1)
-│   │   │       └── AddLocations                 # (Sprint 2)
-│   │   │
-│   │   └── Tests/                          # xUnit backend tests
-│   │       ├── AuthServiceTests.cs              # (Sprint 0)
-│   │       ├── FoodItemServiceTests.cs          # (Sprint 1)
-│   │       └── DashboardServiceTests.cs         # Consumption + aggregation logic (Sprint 3)
+│   │   └── Foodie/                # ASP.NET Core Web API (backend)
+│   │       ├── Program.cs                       # App entry point, DI registration, middleware pipeline (Sprint 0)
+│   │       ├── appsettings.json                 # Base configuration, non-secret (Sprint 0)
+│   │       ├── appsettings.Development.json     # Local dev config, gitignored (Sprint 0)
+│   │       ├── Dockerfile                       # Container build for the API (Sprint 0)
+│   │       │
+│   │       ├── Controllers/                     # HTTP in/out only — no business logic
+│   │       │   ├── AuthController.cs                # Register, login (Sprint 0)
+│   │       │   ├── FoodItemsController.cs           # Inventory CRUD endpoints (Sprint 1)
+│   │       │   ├── LocationsController.cs           # Location CRUD + expiry endpoints (Sprint 2)
+│   │       │   └── DashboardController.cs           # Consume, search/filter, summary endpoints (Sprint 3)
+│   │       │
+│   │       ├── Services/                        # Business rules
+│   │       │   ├── IAuthService.cs / AuthService.cs                  # JWT issuing/validation, password hashing (Sprint 0)
+│   │       │   ├── IFoodItemService.cs / FoodItemService.cs          # Item validation rules (Sprint 1)
+│   │       │   ├── ILocationService.cs / LocationService.cs          # Expiry calculation, location-assignment rules (Sprint 2)
+│   │       │   └── IDashboardService.cs / DashboardService.cs        # Consumption logic, dashboard aggregation (Sprint 3)
+│   │       │
+│   │       ├── Repositories/                    # EF Core data access only
+│   │       │   ├── IUserRepository.cs / UserRepository.cs                # (Sprint 0)
+│   │       │   ├── IFoodItemRepository.cs / FoodItemRepository.cs        # (Sprint 1)
+│   │       │   └── ILocationRepository.cs / LocationRepository.cs        # incl. expiry-filtered queries (Sprint 2)
+│   │       │
+│   │       ├── Models/                          # EF Core entities
+│   │       │   ├── User.cs                          # (Sprint 0)
+│   │       │   ├── FoodItem.cs                      # (Sprint 1)
+│   │       │   └── Location.cs                      # (Sprint 2)
+│   │       │
+│   │       ├── Data/
+│   │       │   ├── FoodieDbContext.cs               # EF Core DbContext (Sprint 0)
+│   │       │   └── Migrations/                      # EF Core migrations, one per schema change
+│   │       │       ├── InitialCreate                # Users (Sprint 0)
+│   │       │       ├── AddFoodItems                 # (Sprint 1)
+│   │       │       └── AddLocations                 # (Sprint 2)
+│   │       │
+│   │       └── Tests/                          # xUnit backend tests
+│   │           ├── AuthServiceTests.cs              # (Sprint 0)
+│   │           ├── FoodItemServiceTests.cs          # (Sprint 1)
+│   │           └── DashboardServiceTests.cs         # Consumption + aggregation logic (Sprint 3)
 │   │
-│   └── foodie-web/                # React + Vite frontend
-│       ├── package.json                      # (Sprint 0)
-│       ├── vite.config.ts                    # (Sprint 0)
-│       ├── tsconfig.json                     # (Sprint 0)
-│       ├── Dockerfile                        # Container build for the frontend (Sprint 3, deployment)
+│   └── frontend/
 │       │
-│       ├── src/
-│       │   ├── main.tsx                          # App entry point (Sprint 0)
-│       │   ├── App.tsx                           # Root component, routing (Sprint 0)
-│       │   │
-│       │   ├── pages/
-│       │   │   ├── LoginPage.tsx                # (Sprint 0)
-│       │   │   ├── RegisterPage.tsx             # (Sprint 0)
-│       │   │   ├── InventoryPage.tsx            # Add/edit/delete item forms (Sprint 1)
-│       │   │   ├── LocationsPage.tsx            # Location management UI (Sprint 2)
-│       │   │   ├── ExpiryDashboardPage.tsx      # Expiring soon / expired sections (Sprint 2)
-│       │   │   └── DashboardPage.tsx            # Summary widgets, search/filter (Sprint 3)
-│       │   │
-│       │   ├── components/
-│       │   │   ├── FoodItemCard.tsx             # (Sprint 1)
-│       │   │   ├── FoodItemForm.tsx             # (Sprint 1)
-│       │   │   ├── LocationFilter.tsx           # (Sprint 2)
-│       │   │   ├── ExpiryBadge.tsx              # (Sprint 2)
-│       │   │   ├── EmptyState.tsx               # (Sprint 3)
-│       │   │   └── ErrorState.tsx               # (Sprint 3)
-│       │   │
-│       │   └── api/
-│       │       ├── client.ts                    # Base API service layer (Sprint 0)
-│       │       ├── authApi.ts                   # (Sprint 0)
-│       │       ├── foodItemsApi.ts              # (Sprint 1)
-│       │       └── locationsApi.ts              # (Sprint 2)
-│       │
-│       └── tests/                  # Playwright end-to-end tests (run via foodie-web's package.json)
-│           ├── auth.spec.ts                   # Sprint 0
-│           ├── inventory.spec.ts              # Sprint 1
-│           ├── locations-expiry.spec.ts       # Sprint 2
-│           └── consumption-dashboard.spec.ts  # Sprint 3
+│       └── foodie-web/             # React + Vite frontend
+│           ├── package.json                      # (Sprint 0)
+│           ├── vite.config.ts                    # (Sprint 0)
+│           ├── tsconfig.json                     # (Sprint 0)
+│           ├── Dockerfile                        # Container build for the frontend (Sprint 3, deployment)
+│           │
+│           ├── src/
+│           │   ├── main.tsx                          # App entry point (Sprint 0)
+│           │   ├── App.tsx                           # Root component, routing (Sprint 0)
+│           │   │
+│           │   ├── pages/
+│           │   │   ├── LoginPage.tsx                # (Sprint 0)
+│           │   │   ├── RegisterPage.tsx             # (Sprint 0)
+│           │   │   ├── InventoryPage.tsx            # Add/edit/delete item forms (Sprint 1)
+│           │   │   ├── LocationsPage.tsx            # Location management UI (Sprint 2)
+│           │   │   ├── ExpiryDashboardPage.tsx      # Expiring soon / expired sections (Sprint 2)
+│           │   │   └── DashboardPage.tsx            # Summary widgets, search/filter (Sprint 3)
+│           │   │
+│           │   ├── components/
+│           │   │   ├── FoodItemCard.tsx             # (Sprint 1)
+│           │   │   ├── FoodItemForm.tsx             # (Sprint 1)
+│           │   │   ├── LocationFilter.tsx           # (Sprint 2)
+│           │   │   ├── ExpiryBadge.tsx              # (Sprint 2)
+│           │   │   ├── EmptyState.tsx               # (Sprint 3)
+│           │   │   └── ErrorState.tsx               # (Sprint 3)
+│           │   │
+│           │   └── api/
+│           │       ├── client.ts                    # Base API service layer (Sprint 0)
+│           │       ├── authApi.ts                   # (Sprint 0)
+│           │       ├── foodItemsApi.ts              # (Sprint 1)
+│           │       └── locationsApi.ts              # (Sprint 2)
+│           │
+│           └── tests/                  # Playwright end-to-end tests (run via foodie-web's package.json)
+│               ├── auth.spec.ts                   # Sprint 0
+│               ├── inventory.spec.ts              # Sprint 1
+│               ├── locations-expiry.spec.ts       # Sprint 2
+│               └── consumption-dashboard.spec.ts  # Sprint 3
 ```
 
 ## Getting Started

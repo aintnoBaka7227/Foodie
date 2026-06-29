@@ -1,0 +1,48 @@
+# ============================================================================
+# Foodie — Local Development PostgreSQL (Docker)
+# ============================================================================
+# Purpose: lets anyone clone the repo and get a matching Postgres instance
+# running with one command, without installing Postgres natively.
+#
+# NOT used for production. Production database is managed Postgres on
+# Supabase (see Foodie_Tech_Decisions.md, Section 8).
+#
+# Data location: ./data (this folder, next to this file) — bind-mounted
+# rather than a named Docker volume specifically so it's visible in Finder
+# and you can check its size directly (`du -sh ./data`) rather than it
+# being hidden inside Docker Desktop's internal VM disk.
+#
+# IMPORTANT: add `data/` and `logs/` to .gitignore — this is real (if
+# disposable) database data and should never be committed.
+#
+# Usage:
+#   docker compose up -d      # start
+#   docker compose down       # stop
+#   docker compose down -v    # stop + wipe data
+# ============================================================================
+
+services:
+  postgres:
+    image: postgres:17.4
+    container_name: foodie-postgres
+    hostname: foodie-postgres
+    environment:
+      POSTGRES_USER: foodie
+      POSTGRES_PASSWORD: foodie_dev_password
+      POSTGRES_DB: foodie_db
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./logs:/var/log/postgresql
+    command: >
+      postgres -c logging_collector=on
+               -c log_directory=/var/log/postgresql
+               -c log_filename=postgresql.log
+               -c log_connections=on
+               -c log_disconnections=on
+               -c shared_preload_libraries=pg_stat_statements
+               -c pg_stat_statements.track=all
+    restart: unless-stopped
