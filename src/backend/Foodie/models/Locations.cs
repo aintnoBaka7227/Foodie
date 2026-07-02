@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Foodie.Models
 {
-    public class Locations
+    public class Location
     {
+        // Data annotations for the Location model
         [Key]
         [Display(Name = "Location ID")]
         public int LocationId { get; set; }
@@ -18,11 +16,11 @@ namespace Foodie.Models
         public string LocationName { get; set; } = string.Empty;
 
         [Required]
-        [ForeignKey(nameof(Users))]
+        [ForeignKey(nameof(User))]
         public int UserId { get; set; }
         
-        public Users User { get; set; } = null!;
-        public ICollection<FoodItems> FoodItems { get; set; } = new List<FoodItems>();
+        public User User { get; set; } = null!;
+        public ICollection<FoodItem> FoodItems { get; set; } = new List<FoodItem>();
     }
 
 }

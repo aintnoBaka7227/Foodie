@@ -1,14 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Foodie.Models
 {
     [Index(nameof(email), IsUnique = true)]
-    public class Users
-    {
+    public class User
+    {   // Data annotations for the User model
         [Key]
         [Display(Name = "User ID")]
         public int UserId { get; set; }
@@ -29,7 +26,7 @@ namespace Foodie.Models
         [Display(Name = "Date Created")]
         public DateTime DateCreated { get; set; }
 
-        public ICollection<Locations> Locations { get; set; } = new List<Locations>();
-        public ICollection<FoodItems> FoodItems { get; set; } = new List<FoodItems>();
+        public ICollection<Location> Locations { get; set; } = new List<Location>();
+        public ICollection<FoodItem> FoodItems { get; set; } = new List<FoodItem>();
     }
 }

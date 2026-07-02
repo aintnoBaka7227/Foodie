@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;        
+using System.ComponentModel.DataAnnotations.Schema;       
 
 namespace Foodie.Models
 {
-    public class FoodItems
+    public class FoodItem
     {
+        // Data annotations for the FoodItem model
         [Key]
         [Display(Name = "Food Item ID")]
         public int FoodItemId { get; set; }
@@ -34,15 +32,15 @@ namespace Foodie.Models
         public DateTime ExpiryDate { get; set; }
 
         
-        [ForeignKey(nameof(Locations))]
+        [ForeignKey(nameof(Location))]
         public int? LocationId { get; set; }
         
-        public Locations? Location { get; set; } = null!;
+        public Location? Location { get; set; } = null!;
 
         [Required]
-        [ForeignKey(nameof(Users))]
+        [ForeignKey(nameof(User))]
         public int UserId { get; set; }
         
-        public Users User { get; set; } = null!;
+        public User User { get; set; } = null!;
     }
 }
