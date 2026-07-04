@@ -1,9 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var supabasePassword = new NpgsqlConnectionStringBuilder(builder.Configuration.GetConnectionString("DefaultConnection"))
+{
+    Password = builder.Configuration["SUPABASE_DB_PASSWORD"] ?? throw new InvalidOperationException("SUPABASE_DB_PASSWORD environment variable is not set.")
+};
+
 builder.Services.AddDbContext<Foodie.Data.FoodieDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(supabasePassword.ConnectionString));
 
 var app = builder.Build();
 
