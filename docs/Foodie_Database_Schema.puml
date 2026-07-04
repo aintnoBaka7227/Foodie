@@ -1,34 +1,28 @@
-@startuml Foodie_ER_Diagram
-title Foodie — Entity Relationship Diagram (MVP / Sprint 0-3)
-
-skinparam backgroundColor white
+@startuml
+title Foodie — Entity Relationship Diagram (MVP / Sprint 0-3, Supabase Auth)
 
 skinparam entity {
-  BackgroundColor #DAE8FC
-  BorderColor #6C8EBF
-  FontColor #1A1A1A
+  BackgroundColor white
+  BorderColor #333333
 }
-
 skinparam note {
-  BackgroundColor #FFF2CC
-  BorderColor #D6B656
+  BackgroundColor #FCF8D9
+  BorderColor #B8A800
 }
 
-' ===================== ENTITIES =====================
-
-entity "Users" as Users {
-  * Id : INT <<PK>>
+entity "auth.users" as AuthUsers <<Supabase-managed>> #E8E8E8 {
+  * id : UUID <<PK>>
   --
-  * Email : VARCHAR(100) <<unique>>
-  * PasswordHash : VARCHAR(255)
-  * CreatedAt : DATETIME
+  * email : VARCHAR(255) <<unique>>
+  * encrypted_password : VARCHAR(255)
+  created_at : TIMESTAMPTZ
 }
 
 entity "Locations" as Locations {
   * Id : INT <<PK>>
   --
   * Name : VARCHAR(100)
-  * UserId : INT <<FK>>
+  * UserId : UUID <<FK>>
 }
 
 entity "FoodItems" as FoodItems {
@@ -39,23 +33,31 @@ entity "FoodItems" as FoodItems {
   * Unit : VARCHAR(20)
   * ExpiryDate : DATE
   LocationId : INT <<FK, nullable>>
-  * UserId : INT <<FK>>
+  * UserId : UUID <<FK>>
 }
 
-' ===================== RELATIONSHIPS =====================
-
-' Users 1 -> N Locations (mandatory FK, cascade delete)
-Users ||--o{ Locations : "owns\n(ON DELETE CASCADE)"
-
-' Locations 1 -> N FoodItems (optional FK, set null on delete)
+AuthUsers ||--o{ Locations : "owns\n(ON DELETE CASCADE)"
+AuthUsers ||--o{ FoodItems : "owns\n(ON DELETE CASCADE)"
 Locations |o--o{ FoodItems : "stores\n(ON DELETE SET NULL)"
 
-' Users 1 -> N FoodItems (mandatory FK, cascade delete)
-Users ||--o{ FoodItems : "owns\n(ON DELETE CASCADE)"
+note right of AuthUsers
+  Owned and managed entirely by
+  Supabase Auth (GoTrue).
+  Not created, migrated, or
+  written to by our own EF Core
+  code — read-only FK target.
+  Password hashing, uniqueness,
+  and lifecycle are Supabase's
+  responsibility, not ours.
+end note
 
-' ===================== NOTES =====================
+note top of FoodItems
+  Cardinality notation used above:
+  ||--o{   one (mandatory) to many (optional)
+  |o--o{   one (optional) to many (optional)
+end note
 
-note right of FoodItems
+note bottom of FoodItems
   LocationId is nullable at the DB level,
   but required by application-layer
   validation when an item is created.
@@ -65,16 +67,13 @@ note right of FoodItems
 end note
 
 note bottom of Locations
-  Bullet (•) = NOT NULL (mandatory attribute)
+  Bullet (*) = NOT NULL (mandatory attribute)
   No bullet = nullable
   <<PK>> = Primary Key, <<FK>> = Foreign Key
+  UserId changed from INT to UUID: it is a
+  foreign key into Supabase's auth.users.id,
+  not a surrogate key we generate ourselves.
 end note
 
-note as N1
-  Cardinality notation used above:
-  ||--o{   one (mandatory) to many (optional)
-  |o--o{   one (optional) to many (optional)
-end note
-
-footer Foodie | ER Diagram v1.0 (MVP) | Sprint 0-3
+footer Foodie | ER Diagram v2.0 (MVP, Supabase Auth) | Sprint 0-3
 @enduml

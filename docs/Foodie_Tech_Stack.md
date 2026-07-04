@@ -14,7 +14,8 @@
 | Runtime (dev/CI) | Node.js 24.x — *exact patch not yet confirmed, run `node --version`* | Required by Vite 8; Active LTS line |
 | Database | PostgreSQL 18.4 | Relational fit for foreign-key-heavy data; free, flexible, hosts anywhere |
 | DB driver | Npgsql 10.0.x (EF Core provider) | Standard EF Core ↔ Postgres bridge |
-| Auth | JWT | Stateless, fits SPA-to-API calls without a session store |
+| Auth | Supabase Auth (JWT) | Supabase issues/manages the JWT (registration, login, password hashing); ASP.NET Core validates it. Stateless, fits SPA-to-API calls without a session store |
+| Auth client (frontend) | `@supabase/supabase-js` | Frontend SDK for register/login calls directly to Supabase Auth |
 | E2E testing | Playwright 1.61.0 | Single tool, cross-browser, fits a React SPA |
 | Backend testing | xUnit 2.9.x | Standard ASP.NET Core unit/integration testing |
 | Containers | Docker — *not yet confirmed, run `docker --version`* | Reproducible local Postgres + dev/prod parity |

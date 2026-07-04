@@ -7,7 +7,7 @@
 ---
 
 ## Sprint 0 — Planning & Foundation
-**Duration:** Week 1 (7 days)
+**Duration:** Week 1 (7 days; ~6 days of scoped work below — the Supabase Auth switch frees up ~1 day versus the original self-issued JWT plan, left as buffer)
 **Goal:** Create project foundations and establish a clear project direction before development begins.
 
 | Task | Est. Duration |
@@ -16,7 +16,7 @@
 | 2. User Stories & Requirements | 1 day |
 | 3. System Design | 1.5 days |
 | 4. Project Setup | 1.5 days |
-| 5. Authentication | 2 days |
+| 5. Authentication | 1 day |
 
 ### Task 1 — Define Product Scope and MVP *(1 day)*
 - Product Vision
@@ -42,11 +42,11 @@
 **Frontend:** Create React Vite application · Configure routing · Configure API service layer
 **Database:** Configure PostgreSQL · Configure Entity Framework Core · Create initial migration
 
-### Task 5 — Authentication *(2 days)*
-**Backend:** User Entity · Register API · Login API · JWT Authentication
-**Frontend:** Login Page · Register Page
+### Task 5 — Authentication *(1 day)*
+**Backend:** Configure Supabase Auth project (email/password provider only) · Configure JWT Bearer middleware to validate Supabase-issued tokens (no Register/Login API, no User entity — Supabase's `auth.users` replaces both)
+**Frontend:** Install `@supabase/supabase-js` · Login Page · Register Page (calling `supabase.auth.signInWithPassword()` / `signUp()` directly, not a custom backend endpoint)
 
-**Deliverable:** Users can register and login.
+**Deliverable:** Users can register and login via Supabase Auth; the ASP.NET Core API validates the resulting JWT on every subsequent request.
 
 ---
 

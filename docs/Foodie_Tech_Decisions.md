@@ -53,14 +53,17 @@
 
 ---
 
-## 5. JWT Authentication
+## 5. Supabase Auth (JWT issued by Supabase, validated by ASP.NET Core)
 
-**Chosen over:** Session-based auth
+**Chosen over:** Self-issued JWT (original decision), Session-based auth
 
-**Reason:** Stateless, fits an SPA calling a separate API — no server-side session store. Claims (user ID, household ID) avoid a DB round-trip per request.
+**Reason:** Stateless JWT still fits an SPA calling a separate API — no session store, claims avoid a DB round-trip per request. Supabase's Auth service (GoTrue) now owns registration, login, hashing, and token issuance; ASP.NET Core just validates via AddJwtBearer against Supabase's JWKS. No AuthController, no hashing code, no Users table — auth.users replaces it. Email/password only for v1; OAuth is a dashboard toggle later, no backend change needed.
 
 **Comparison:**
-- **Vs. session-based:** needs a session store (in-memory or shared cache) looked up on every request. JWT just verifies a signature — no lookup, no infra to sync across instances.
+
+
+**Vs. self-issued JWT (original decision):** less code to maintain, no hashing load on the API thread, token issuance decoupled from the API's own deploys/cold-starts. Trade-off: dependency on Supabase's uptime, and UserId moves from INT to UUID (Section 2 of Foodie_Database_Decisions.md).
+**Vs. session-based:** unchanged — still needs a session store per request; JWT just verifies a signature.
 
 ---
 

@@ -4,7 +4,7 @@
 
 ## 1. Tables (Entities)
 
-Three tables for the MVP: **Users**, **Locations**, **FoodItems**.
+Two tables of our own for the MVP: **Locations**, **FoodItems**. There is no `public.Users` table — Supabase Auth owns identity via `auth.users`, and `Locations`/`FoodItems` reference `auth.users.id` directly.
 
 **Chosen over:** A single denormalized table; a separate `Consumption` table.
 
@@ -14,11 +14,11 @@ Each table represents one real-world concept with no repeating groups (1NF) and 
 
 ## 2. Primary Keys — Surrogate, not Natural
 
-**Chosen over:** Natural keys (e.g. `Email` as PK on Users, `Name` as PK on Locations).
+**Chosen over:** Natural keys (e.g. `Name` as PK on Locations).
 
-All three tables use an auto-incrementing `Id` (INT) as a surrogate primary key.
+`Locations` and `FoodItems` each use an auto-incrementing `Id` (INT) as a surrogate primary key, unchanged. `UserId` on both is now a `UUID`, not an `INT` — it's a foreign key into Supabase's `auth.users.id`, which we don't generate ourselves.
 
-Surrogate keys were chosen because: none of Foodie's entities have a value that's both naturally unique *and* guaranteed never to change. `Email` could be a candidate key on `Users` (and is enforced as `UNIQUE`, see Section 4), but using it as the PK would mean every FK referencing a user breaks if the email is ever updated. `Location.Name` ("Fridge", "Pantry") isn't even unique within a household, let alone across all users. Surrogate keys avoid both problems and keep every FK column a stable, opaque integer.
+Surrogate keys were chosen for `Locations.Id`/`FoodItems.Id` because none of Foodie's own entities have a value that's both naturally unique *and* guaranteed never to change. `Location.Name` ("Fridge", "Pantry") isn't even unique within a household, let alone across all users. Surrogate keys avoid this and keep those PK columns stable, opaque integers.
 
 ---
 
@@ -28,9 +28,9 @@ All three relationships in Foodie are **one-to-many**; there are no many-to-many
 
 | Relationship | Cardinality | FK column |
 |---|---|---|
-| Users → Locations | 1 : N | `Locations.UserId` |
-| Users → FoodItems | 1 : N | `FoodItems.UserId` |
-| Locations → FoodItems | 1 : N | `FoodItems.LocationId` |
+| auth.users → Locations | 1 : N | `Locations.UserId` (UUID) |
+| auth.users → FoodItems | 1 : N | `FoodItems.UserId` (UUID) |
+| Locations → FoodItems | 1 : N | `FoodItems.LocationId` (INT) |
 
 **Why no junction table:** the article's many-to-many pattern (e.g. students↔courses) applies when both sides can have multiple of the other. That's not true here — one location belongs to exactly one user, one food item belongs to exactly one location. If a future feature allowed *shared households* (multiple users managing the same location), that would become many-to-many and require a junction table (e.g. `LocationMembers`). Out of scope for MVP.
 
@@ -49,7 +49,7 @@ These can't both be enforced as hard database constraints simultaneously: `ON DE
 
 **Why this split, not the other way around:** Enforcing "required" at the DB level (`NOT NULL`) would force `ON DELETE` to be either `CASCADE` (deletes the user's food data — too destructive for what should be a low-stakes action like renaming/removing a shelf) or `NO ACTION`/`RESTRICT` (blocks the delete entirely until every item is reassigned — overly strict for a casual organizing app). `SET NULL` is the better UX: delete the location, items survive as "unassigned," user reassigns them later through the normal edit flow. The trade-off is that referential integrity alone can no longer guarantee every item has a location — that responsibility now sits with the application/service layer (`FoodItemService`), which is an explicit, documented gap rather than an accidental one.
 
-All other FK columns (`Locations.UserId`, `FoodItems.UserId`) are **NOT NULL** — a location or food item with no owning user is meaningless, and there's no equivalent "soft unassign" use case for the user relationship; if a user is deleted, their data should go with them (`ON DELETE CASCADE`).
+All other FK columns (`Locations.UserId`, `FoodItems.UserId`) are **NOT NULL** — a location or food item with no owning user is meaningless, and there's no equivalent "soft unassign" use case for the user relationship; if a user is deleted, their data should go with them (`ON DELETE CASCADE`). These FKs now reference `auth.users.id` instead of a table we manage ourselves; the cascade still fires the same way on user deletion.
 
 ---
 
@@ -69,9 +69,9 @@ Following the article's three integrity types:
 
 | Type | Applied as |
 |---|---|
-| **Entity integrity** | Every table has a non-null, unique surrogate PK (`Id`) |
+| **Entity integrity** | Every table has a non-null, unique surrogate PK (`Id`); user identity integrity is Supabase's responsibility (`auth.users`) |
 | **Referential integrity** | All FKs declared with explicit `ON DELETE` behavior (Section 4) — none left as an undefined default |
-| **Domain integrity** | `Quantity` constrained to `>= 0` (`CHECK` constraint); `Email` constrained `UNIQUE` |
+| **Domain integrity** | `Quantity` constrained to `>= 0` (`CHECK` constraint); email uniqueness is enforced by Supabase Auth, not our schema |
 
 ---
 
@@ -79,5 +79,6 @@ Following the article's three integrity types:
 
 - **Consumption history table** — not needed until a feature requires historical reporting, not just current state (Section 1)
 - **Shared households / multi-user locations** — would require a many-to-many junction table; not in Sprint 0-3 scope (Section 3)
-- **Soft-delete on Users/Locations/FoodItems** — MVP uses hard deletes with cascade/set-null; soft-delete (an `IsDeleted` flag) would be a later addition if an "undo delete" or audit-trail feature is requested
-- **Physical address on Locations** — MVP assumes one home per user, so `Locations` has no `Address` field. Adding one now would duplicate the same address on every row for that user (a 3NF violation — address depends on the *home*, not the *location*). When multi-home support is added, the fix is a new `Homes` table (`Id`, `Address`, owning `User`) with `Locations` gaining a `HomeId` FK — not an `Address` column on `Locations` itself.
+- **Soft-delete on Locations/FoodItems** — MVP uses hard deletes with cascade/set-null; soft-delete (an `IsDeleted` flag) would be a later addition if an "undo delete" or audit-trail feature is requested. (User soft-delete is Supabase Auth's responsibility, not ours.)
+- **Physical address on Locations** — MVP assumes one home per user, so `Locations` has no `Address` field. Adding one now would duplicate the same address on every row for that user (a 3NF violation — address depends on the *home*, not the *location*). When multi-home support is added, the fix is a new `Homes` table (`Id`, `Address`, owning user via `UserId UUID`) with `Locations` gaining a `HomeId` FK — not an `Address` column on `Locations` itself.
+- **Row Level Security (RLS)** — deliberately not adopted for MVP; the ASP.NET Core API remains the sole gatekeeper (Services layer, as in Section 4). Revisit only if the database is ever queried by more than one trusted backend, or by clients directly.

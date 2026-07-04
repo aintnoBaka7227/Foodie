@@ -23,7 +23,9 @@ App Logic Tier     →  ASP.NET Core Web API
                       (Controllers → Services → Repositories, one process)
 
   Controllers      →  HTTP in/out
-                      ├── AuthController ...................... Sprint 0
+                      ├── (no AuthController — Supabase Auth
+                      │     handles register/login directly
+                      │     from the client) .................. Sprint 0
                       ├── FoodItemsController ................. Sprint 1
                       ├── LocationsController, expiry
                       │     endpoints ......................... Sprint 2
@@ -32,8 +34,9 @@ App Logic Tier     →  ASP.NET Core Web API
         │
         ▼
   Services         →  Business rules
-                      ├── JWT issuing/validation, password
-                      │     hashing ........................... Sprint 0
+                      ├── JWT validation config only (no
+                      │     issuing, no password hashing —
+                      │     Supabase Auth owns both) .......... Sprint 0
                       ├── Item validation rules ................ Sprint 1
                       ├── Expiry calculation, location-
                       │     assignment rules .................. Sprint 2
@@ -42,7 +45,8 @@ App Logic Tier     →  ASP.NET Core Web API
         │
         ▼
   Repositories     →  EF Core data access
-                      ├── UserRepository ....................... Sprint 0
+                      ├── (no UserRepository — no public.Users
+                      │     table; Supabase owns auth.users) .. Sprint 0
                       ├── FoodItemRepository ................... Sprint 1
                       ├── LocationRepository, expiry-filtered
                       │     queries ............................ Sprint 2
@@ -50,14 +54,18 @@ App Logic Tier     →  ASP.NET Core Web API
                             summary queries .................... Sprint 3
         │
         ▼
-Database Tier      →  PostgreSQL
-                      ├── Users table, initial migration ....... Sprint 0
-                      ├── FoodItems table ....................... Sprint 1
+Database Tier      →  PostgreSQL (Supabase-hosted)
+                      ├── auth.users managed entirely by
+                      │     Supabase Auth ...................... Sprint 0
+                      ├── FoodItems table (UserId as UUID FK
+                      │     into auth.users) ................... Sprint 1
                       ├── Locations table, FK to FoodItems ...... Sprint 2
                       └── Schema support for consumption ........ Sprint 3
 ```
 
 Each arrow is a process boundary the previous tier can't see past — the client never talks to the database directly, and the database has no awareness of the client. Controllers, Services, and Repositories all run inside the *same* Tier 2 process; that's internal code organization, not three more tiers. The system is still 3-tier — Tier 2 just has structure inside it.
+
+*One boundary is deliberately different: for register/login specifically, the Client Tier talks directly to Supabase Auth, not through Tier 2.* This isn't the client reaching into the Database Tier — Supabase Auth is a managed identity service sitting in front of the `auth.users` data, not raw table access. Every other operation (Locations, FoodItems, expiry, consumption) still flows Client → Tier 2 → Tier 3 exactly as before; Tier 2 just receives an already-issued JWT to validate rather than issuing one itself.
 
 *Tier 1 renders client-side (CSR), not server-side — Foodie is a private, authenticated app with no anonymous-visitor or SEO audience, so SSR's main benefits don't apply. Revisit only if a public, SEO-relevant surface is added later.*
 
