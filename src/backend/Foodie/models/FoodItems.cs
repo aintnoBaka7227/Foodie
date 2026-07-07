@@ -37,10 +37,6 @@ namespace Foodie.Models
         
         public Location? Location { get; set; } = null!;
 
-        [Required]
-        [ForeignKey(nameof(User))]
-        public int UserId { get; set; }
-        
-        public User User { get; set; } = null!;
+        public Guid UserId { get; set; }
     }
 }

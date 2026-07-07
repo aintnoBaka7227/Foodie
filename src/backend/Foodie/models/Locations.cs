@@ -16,10 +16,9 @@ namespace Foodie.Models
         public string LocationName { get; set; } = string.Empty;
 
         [Required]
-        [ForeignKey(nameof(User))]
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         
-        public User User { get; set; } = null!;
+        
         public ICollection<FoodItem> FoodItems { get; set; } = new List<FoodItem>();
     }
 
